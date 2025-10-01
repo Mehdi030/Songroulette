@@ -1,14 +1,13 @@
 // app/index.tsx
-import { Link } from 'expo-router';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useEffect, useState } from 'react';
-import { CFG, validateConfig } from '../lib/config';
+import { Link } from "expo-router";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { CFG, validateConfig } from "../lib/config";
 
-// Dummy-Session für diese Version. Im echten Projekt durch User-Session ersetzen!
 const getUserSession = () => ({
     isLoggedIn: false,
-    displayName: '',
-    username: '',
+    displayName: "",
+    username: "",
 });
 
 export default function Home() {
@@ -17,20 +16,17 @@ export default function Home() {
 
     useEffect(() => {
         setIsConfigValid(validateConfig());
-        const session = getUserSession();
-        setUserSession(session);
+        setUserSession(getUserSession());
     }, []);
 
-    // Demo-Login Handler (nur Dummy)
     const handleDemoLogin = async () => {
         setUserSession({
             isLoggedIn: true,
-            displayName: 'Demo User',
-            username: 'demo',
+            displayName: "Demo User",
+            username: "demo",
         });
     };
 
-    // Logout Handler (nur Dummy)
     const handleLogout = async () => {
         setUserSession(getUserSession());
     };
@@ -65,10 +61,15 @@ export default function Home() {
                         <Text style={styles.secondaryLinkText}>👤 Profil</Text>
                     </Link>
 
-                    <Pressable
-                        style={styles.logoutButton}
-                        onPress={handleLogout}
-                    >
+                    <Link href="/history" style={styles.secondaryLink}>
+                        <Text style={styles.secondaryLinkText}>🕑 Spielhistorie</Text>
+                    </Link>
+
+                    <Link href="/friends" style={styles.secondaryLink}>
+                        <Text style={styles.secondaryLinkText}>🤝 Freunde</Text>
+                    </Link>
+
+                    <Pressable style={styles.logoutButton} onPress={handleLogout}>
                         <Text style={styles.logoutText}>Abmelden</Text>
                     </Pressable>
                 </View>
@@ -83,7 +84,7 @@ export default function Home() {
                     </Link>
 
                     <Pressable
-                        style={[styles.primaryLink, { backgroundColor: '#333' }]}
+                        style={[styles.primaryLink, { backgroundColor: "#333" }]}
                         onPress={handleDemoLogin}
                     >
                         <Text style={styles.primaryLinkText}>🎮 Demo-Login</Text>
@@ -101,88 +102,90 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 20
+        backgroundColor: "#ffffff",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
     },
     title: {
-        color: '#22223b',
+        color: "#22223b",
         fontSize: 32,
-        fontWeight: '700',
-        marginBottom: 8
+        fontWeight: "700",
+        marginBottom: 8,
     },
     subtitle: {
-        color: '#4a4e69',
+        color: "#4a4e69",
         fontSize: 16,
         marginBottom: 40,
-        textAlign: 'center'
+        textAlign: "center",
     },
     error: {
-        color: '#b22222',
+        color: "#b22222",
         fontSize: 16,
-        textAlign: 'center',
-        paddingHorizontal: 20
+        textAlign: "center",
+        paddingHorizontal: 20,
     },
-    loggedInContainer: { alignItems: 'center', gap: 16 },
+    loggedInContainer: { alignItems: "center", gap: 16 },
     welcomeText: {
-        color: '#22223b',
+        color: "#22223b",
         fontSize: 18,
-        textAlign: 'center',
-        marginBottom: 20
-    },
-    authContainer: { alignItems: 'center', gap: 16 },
-    authDescription: {
-        color: '#4a4e69',
-        fontSize: 14,
-        textAlign: 'center',
+        textAlign: "center",
         marginBottom: 20,
-        lineHeight: 20
+    },
+    authContainer: { alignItems: "center", gap: 16 },
+    authDescription: {
+        color: "#4a4e69",
+        fontSize: 14,
+        textAlign: "center",
+        marginBottom: 20,
+        lineHeight: 20,
     },
     primaryLink: {
-        backgroundColor: '#22223b',
+        backgroundColor: "#22223b",
         paddingHorizontal: 32,
         paddingVertical: 16,
         borderRadius: 12,
         minWidth: 200,
-        alignItems: 'center'
+        alignItems: "center",
+        marginVertical: 4,
     },
     primaryLinkText: {
-        color: '#fff',
+        color: "#fff",
         fontSize: 18,
-        fontWeight: '600'
+        fontWeight: "600",
     },
     secondaryLink: {
-        backgroundColor: '#f2e9e4',
+        backgroundColor: "#f2e9e4",
         paddingHorizontal: 32,
         paddingVertical: 16,
         borderRadius: 12,
         minWidth: 200,
-        alignItems: 'center'
+        alignItems: "center",
+        marginVertical: 4,
     },
     secondaryLinkText: {
-        color: '#22223b',
-        fontSize: 16
+        color: "#22223b",
+        fontSize: 16,
     },
     guestLink: {
         paddingHorizontal: 20,
-        paddingVertical: 12
+        paddingVertical: 12,
     },
     guestLinkText: {
-        color: '#4a4e69',
+        color: "#4a4e69",
         fontSize: 14,
-        textDecorationLine: 'underline'
+        textDecorationLine: "underline",
     },
     logoutButton: {
-        backgroundColor: '#b22222',
+        backgroundColor: "#b22222",
         paddingHorizontal: 24,
         paddingVertical: 12,
         borderRadius: 8,
-        marginTop: 20
+        marginTop: 20,
     },
     logoutText: {
-        color: '#fff',
+        color: "#fff",
         fontSize: 14,
-        fontWeight: '600'
-    }
+        fontWeight: "600",
+    },
 });

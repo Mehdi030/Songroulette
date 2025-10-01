@@ -4,22 +4,18 @@ import cors from 'cors';
 import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
-// Debugging
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Error handling
 const handleError = (res, error, message = 'Server error') => {
     console.error(message, error);
     res.status(500).json({
@@ -93,7 +89,6 @@ app.post('/auth/spotify', async (req, res) => {
 app.post('/auth/logout', async (req, res) => {
     try {
         const { userId } = req.body;
-        // Hier kann zukünftige Logout-Logik rein, z.B. Supabase-Session löschen
         res.json({
             success: true,
             message: 'Logout successful'
@@ -238,7 +233,7 @@ app.post('/lobbies/:id/join', async (req, res) => {
         const { data, error } = await supabase
             .from('lobby_players')
             .insert({
-                lobby_id: id,
+                lobby_id: id, // KORREKT!
                 userid
             });
         if (error) throw error;
@@ -252,7 +247,6 @@ app.post('/lobbies/:id/join', async (req, res) => {
     }
 });
 
-// TEST DATA ROUTES
 app.post('/test/seed-songs', async (req, res) => {
     try {
         const testSongs = [
@@ -297,7 +291,6 @@ app.post('/test/seed-songs', async (req, res) => {
     }
 });
 
-// HIGHSCORES ROUTE
 app.get('/highscores', async (req, res) => {
     try {
         const { data: highscores, error } = await supabase

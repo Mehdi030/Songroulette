@@ -2,8 +2,10 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "^54.0.10",
+    "lint": "^0.8.19",
     "react-dom": "19.1.0",
-    "react-native-web": "^0.21.0"
+    "react-native-web": "^0.21.0",
+    "tsc": "^2.0.4"
   },
   "devDependencies": {
     "supabase": "^2.47.2"

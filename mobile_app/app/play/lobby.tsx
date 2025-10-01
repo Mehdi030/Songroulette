@@ -5,7 +5,7 @@ import { CFG } from '../../lib/config';
 
 type LobbySettings = {
     name: string;
-    owner_id: string;
+    owner_id: string;    // snake_case für Requestrichtlinien
     game_mode: string;
     platform: string;
     is_private: boolean;
@@ -31,7 +31,7 @@ export default function LobbyScreen() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newLobbySettings, setNewLobbySettings] = useState<LobbySettings>({
         name: 'Neue Lobby',
-        owner_id: '', // Die UserID muss bei Lobby-Erstellung gesetzt werden
+        owner_id: '',  // CORRECT snake_case!
         game_mode: 'guess_the_song',
         platform: 'spotify',
         is_private: false,
@@ -62,9 +62,8 @@ export default function LobbyScreen() {
                 return;
             }
 
-            const lobbyData: LobbySettings = {
-                ...newLobbySettings
-            };
+            // Sende hier ausschliesslich snake_case Felder an API
+            const lobbyData = { ...newLobbySettings };
 
             const response = await fetch(`${CFG.SERVER_URL}/lobbies`, {
                 method: 'POST',
@@ -88,7 +87,7 @@ export default function LobbyScreen() {
         }
     };
 
-    const gameModeNames: Record<string, string> = {
+const gameModeNames: Record<string, string> = {
         'guess_the_song': 'Song erraten',
         'finish_the_lyrics': 'Text ergänzen',
         'music_quiz': 'Musik Quiz'

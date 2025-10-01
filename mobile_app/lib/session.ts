@@ -1,20 +1,18 @@
-// Singleton-Sessionmanager für Benutzersitzung und -daten
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type UserProfile = {
-    id: string;
+    user_id: string;
     username: string;
-    avatarUrl?: string | null;
-    createdAt?: string;
+    avatar_url?: string | null;
+    created_at?: string;
 };
 
 export type UserSession = {
     isLoggedIn: boolean;
-    userId?: string;
+    user_id?: string;
     username?: string;
-    avatarUrl?: string | null;
-    displayName?: string; // für UI
+    avatar_url?: string | null;
+    display_name?: string; // für UI
 };
 
 export class SessionManager {
@@ -22,7 +20,7 @@ export class SessionManager {
     private currentSession: UserSession = { isLoggedIn: false };
 
     private constructor() {
-        this.loadSession(); // Session beim Start laden (async beachten!)
+        this.loadSession(); // Session asynchron laden!
     }
 
     public static getInstance(): SessionManager {
@@ -32,7 +30,6 @@ export class SessionManager {
         return SessionManager.instance;
     }
 
-    // Session laden (asynchron!)
     private async loadSession() {
         try {
             const sessionData = await AsyncStorage.getItem('user_session');
@@ -44,7 +41,6 @@ export class SessionManager {
         }
     }
 
-    // Session speichern (asynchron!)
     private async saveSession() {
         try {
             await AsyncStorage.setItem('user_session', JSON.stringify(this.currentSession));
@@ -53,25 +49,22 @@ export class SessionManager {
         }
     }
 
-    // Gibt die aktuelle Session synchron zurück (letzter gespeicherter Stand im RAM)
     public getSession(): UserSession {
         return this.currentSession;
     }
 
-    // Demo-Login setzt UserSession auf einen Demo-User (und persistiert das)
     public async loginDemo() {
         this.currentSession = {
             isLoggedIn: true,
-            userId: 'demo-id',
+            user_id: 'demo-id',
             username: 'DemoUser',
-            displayName: 'DemoUser',
-            avatarUrl: null,
+            display_name: 'DemoUser',
+            avatar_url: null,
         };
         await this.saveSession();
         return { success: true };
     }
 
-    // Logout setzt auf leeres Session-Objekt und speichert dies ebenfalls
     public async logout() {
         this.currentSession = { isLoggedIn: false };
         await this.saveSession();

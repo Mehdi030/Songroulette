@@ -2,7 +2,6 @@ import 'dotenv/config'; // Muss ganz oben stehen!
 
 import express from 'express';
 import cors from 'cors';
-import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto'; // UUID statt nanoid
 
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL); // Debug: Sollte deine URL anzeigen
@@ -13,7 +12,6 @@ const PORT = process.env.PORT || 3000;
 // Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Middleware
 app.use(cors());

@@ -4,5 +4,8 @@
     "expo": "^54.0.10",
     "react-dom": "19.1.0",
     "react-native-web": "^0.21.0"
+  },
+  "devDependencies": {
+    "supabase": "^2.47.2"
   }
 }

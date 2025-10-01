@@ -1,10 +1,11 @@
-import 'dotenv/config'; // Muss ganz oben stehen!
-
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { randomUUID } from 'crypto'; // UUID statt nanoid
+import { randomUUID } from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
-console.log('SUPABASE_URL:', process.env.SUPABASE_URL); // Debug: Sollte deine URL anzeigen
+// Debugging
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,12 +13,13 @@ const PORT = process.env.PORT || 3000;
 // Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Error handling middleware
+// Error handling
 const handleError = (res, error, message = 'Server error') => {
     console.error(message, error);
     res.status(500).json({
@@ -27,21 +29,18 @@ const handleError = (res, error, message = 'Server error') => {
     });
 };
 
-// AUTHENTICATION ROUTES
+// AUTH ROUTES
 app.post('/auth/demo-login', async (req, res) => {
     try {
-        // 1. Erst einen echten Supabase Auth User erstellen
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-            email: `demo${Date.now()}@example.com`, // Eindeutige E-Mail
+            email: `demo${Date.now()}@example.com`,
             password: 'demo123456',
             email_confirm: true
         });
-
         if (authError) throw authError;
 
-        // 2. Dann das Profile mit der echten Auth-ID erstellen
         const demoUser = {
-            id: authData.user.id, // Echte Auth-User-ID verwenden!
+            id: authData.user.id,
             username: `demo_user_${Date.now()}`,
             avatarurl: null,
             createdat: new Date().toISOString()
@@ -52,7 +51,6 @@ app.post('/auth/demo-login', async (req, res) => {
             .upsert(demoUser)
             .select()
             .single();
-
         if (error) throw error;
 
         res.json({
@@ -68,13 +66,11 @@ app.post('/auth/demo-login', async (req, res) => {
 app.post('/auth/spotify', async (req, res) => {
     try {
         const { code } = req.body;
-        // Hier würde normalerweise der Spotify OAuth-Flow stattfinden
-        // Für Demo-Zwecke simulieren wir einen erfolgreichen Login
         const spotifyUser = {
-            id: randomUUID(), // UUID statt nanoid()
+            id: randomUUID(),
             username: `spotify_user_${randomUUID().slice(0, 6)}`,
-            avatarurl: null, // Feldname wie in DB
-            createdat: new Date().toISOString() // Feldname wie in DB
+            avatarurl: null,
+            createdat: new Date().toISOString()
         };
 
         const { data, error } = await supabase
@@ -82,7 +78,6 @@ app.post('/auth/spotify', async (req, res) => {
             .upsert(spotifyUser)
             .select()
             .single();
-
         if (error) throw error;
 
         res.json({
@@ -98,6 +93,7 @@ app.post('/auth/spotify', async (req, res) => {
 app.post('/auth/logout', async (req, res) => {
     try {
         const { userId } = req.body;
+        // Hier kann zukünftige Logout-Logik rein, z.B. Supabase-Session löschen
         res.json({
             success: true,
             message: 'Logout successful'
@@ -110,23 +106,19 @@ app.post('/auth/logout', async (req, res) => {
 // LOBBY ROUTES
 app.get('/lobbies', async (req, res) => {
     try {
-        // Ganz einfach - alle Lobbies ohne Filter
         const { data: lobbies, error } = await supabase
             .from('lobbies')
-            .select('*')
-
+            .select('*');
         if (error) throw error;
 
         res.json({
             success: true,
-            data: lobbies || [] // Fallback auf leeres Array
+            data: lobbies || []
         });
     } catch (error) {
         handleError(res, error, 'Failed to fetch lobbies');
     }
 });
-
-
 
 app.post('/lobbies', async (req, res) => {
     try {
@@ -145,13 +137,13 @@ app.post('/lobbies', async (req, res) => {
             id: randomUUID(),
             name: name || 'Neue Lobby',
             ownerid,
-            game_mode: game_mode || 'guess_the_song', // exakt wie Supabase-Spalte!
+            game_mode: game_mode || 'guess_the_song',
             platform: 'spotify',
             isprivate: isprivate || false,
             createdat: new Date().toISOString(),
             maxrounds: maxrounds || 10,
-            is_genre_restricted: is_genre_restricted || false, // exakt wie Supabase-Spalte!
-            is_buzzer_mode: is_buzzer_mode || false,           // exakt wie Supabase-Spalte!
+            is_genre_restricted: is_genre_restricted || false,
+            is_buzzer_mode: is_buzzer_mode || false,
             gameoptions: gameoptions || {}
         };
 
@@ -160,16 +152,12 @@ app.post('/lobbies', async (req, res) => {
             .insert(lobbyData)
             .select()
             .single();
-
         if (error) throw error;
 
         if (ownerid) {
             await supabase
                 .from('lobby_players')
-                .insert({
-                    lobbyid: data.id,
-                    userid: ownerid
-                });
+                .insert({ lobby_id: data.id, userid: ownerid });
         }
 
         res.json({
@@ -188,17 +176,16 @@ app.get('/lobbies/:id', async (req, res) => {
         const { data: lobby, error } = await supabase
             .from('lobbies')
             .select(`
-        *,
-        lobby_players(
-          userid,
-          joinedat,
-          profiles(username, avatarurl)
-        ),
-        profiles!lobbies_ownerid_fkey(username, avatarurl)
-      `)
+                *,
+                lobby_players(
+                  userid,
+                  joinedat,
+                  profiles(username, avatarurl)
+                ),
+                profiles!lobbies_ownerid_fkey(username, avatarurl)
+            `)
             .eq('id', id)
             .single();
-
         if (error) throw error;
 
         res.json({
@@ -213,23 +200,20 @@ app.get('/lobbies/:id', async (req, res) => {
 app.post('/lobbies/:id/join', async (req, res) => {
     try {
         const { id } = req.params;
-        const { userid } = req.body; // Feldname wie in DB
+        const { userid } = req.body;
 
-        // Prüfen ob Lobby existiert
         const { data: lobby, error: lobbyError } = await supabase
             .from('lobbies')
             .select('*')
             .eq('id', id)
             .single();
-
         if (lobbyError) throw new Error('Lobby not found');
 
-        // Prüfen ob User bereits in der Lobby ist
         const { data: existingPlayer } = await supabase
             .from('lobby_players')
             .select('*')
-            .eq('lobbyid', id) // Feldname wie in DB
-            .eq('userid', userid) // Feldname wie in DB
+            .eq('lobby_id', id)
+            .eq('userid', userid)
             .single();
 
         if (existingPlayer) {
@@ -239,11 +223,10 @@ app.post('/lobbies/:id/join', async (req, res) => {
             });
         }
 
-        // Spieleranzahl prüfen
         const { count } = await supabase
             .from('lobby_players')
             .select('*', { count: 'exact' })
-            .eq('lobbyid', id); // Feldname wie in DB
+            .eq('lobby_id', id);
 
         if (count >= 8) {
             return res.status(400).json({
@@ -252,14 +235,12 @@ app.post('/lobbies/:id/join', async (req, res) => {
             });
         }
 
-        // User zur Lobby hinzufügen
         const { data, error } = await supabase
             .from('lobby_players')
             .insert({
-                lobbyid: id, // Feldname wie in DB
-                userid // Feldname wie in DB
+                lobby_id: id,
+                userid
             });
-
         if (error) throw error;
 
         res.json({
@@ -271,40 +252,39 @@ app.post('/lobbies/:id/join', async (req, res) => {
     }
 });
 
-// TEST DATA ROUTES (für Entwicklung)
+// TEST DATA ROUTES
 app.post('/test/seed-songs', async (req, res) => {
     try {
         const testSongs = [
             {
-                id: randomUUID(), // UUID statt auto-generated
+                id: randomUUID(),
                 title: 'Shape of You',
                 artist: 'Ed Sheeran',
                 platform: 'spotify',
-                externalid: 'test_001', // Feldname wie in DB
-                createdat: new Date().toISOString() // Feldname wie in DB
+                externalid: 'test_001',
+                createdat: new Date().toISOString()
             },
             {
-                id: randomUUID(), // UUID statt auto-generated
+                id: randomUUID(),
                 title: 'Blinding Lights',
                 artist: 'The Weeknd',
                 platform: 'spotify',
-                externalid: 'test_002', // Feldname wie in DB
-                createdat: new Date().toISOString() // Feldname wie in DB
+                externalid: 'test_002',
+                createdat: new Date().toISOString()
             },
             {
-                id: randomUUID(), // UUID statt auto-generated
+                id: randomUUID(),
                 title: 'Watermelon Sugar',
                 artist: 'Harry Styles',
                 platform: 'spotify',
-                externalid: 'test_003', // Feldname wie in DB
-                createdat: new Date().toISOString() // Feldname wie in DB
+                externalid: 'test_003',
+                createdat: new Date().toISOString()
             }
         ];
 
         const { data, error } = await supabase
             .from('songs')
             .upsert(testSongs);
-
         if (error) throw error;
 
         res.json({
@@ -330,7 +310,6 @@ app.get('/highscores', async (req, res) => {
             `)
             .order('highscore', { ascending: false })
             .limit(10);
-
         if (error) throw error;
 
         res.json({

@@ -1,5 +1,9 @@
 {
-  "plugins": [
-    "expo-router"
-  ]
+  "expo": {
+    "name": "mobile_app",
+    "slug": "mobile_app",
+    "version": "1.0.0",
+    "sdkVersion": "54.0.0",
+    "platforms": ["ios", "android", "web"]
+  }
 }

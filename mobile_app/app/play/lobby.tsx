@@ -1,32 +1,44 @@
-// app/play/lobby.tsx - Erweitert
 import { View, Text, StyleSheet, Pressable, FlatList, Alert, Modal, TextInput, Switch } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Link } from 'expo-router';
-import { CFG, Session } from '../../lib/config';
-import { GameMode, LobbySettings } from '../../types/game';
-import { GameService } from '../../lib/game-service'    ;
+import { CFG } from '../../lib/config';
+
+type LobbySettings = {
+    name: string;
+    owner_id: string;
+    game_mode: string;
+    platform: string;
+    is_private: boolean;
+    max_rounds: number;
+    is_songs_restricted: boolean;
+    is_buzzer_mode: boolean;
+    game_option?: string;
+};
 
 type Lobby = {
     id: string;
-    code?: string;
     name: string;
-    gamemode: GameMode;
-    maxrounds: number;
-    isbuzzermode: boolean;
-    player_count: number; // Kommt vom Backend als player_count
+    game_mode: string;
+    max_rounds: number;
+    is_buzzer_mode: boolean;
+    is_private: boolean;
+    player_count: number;
+    code?: string;
 };
 
-export default function Lobby() {
+export default function LobbyScreen() {
     const [lobbies, setLobbies] = useState<Lobby[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newLobbySettings, setNewLobbySettings] = useState<LobbySettings>({
         name: 'Neue Lobby',
-        gamemode: 'guess_the_song',
-        maxrounds: 10,
-        isgenrerestricted: false,
-        isbuzzermode: false,
-        isprivate: false,
-        gameoptions: {}
+        owner_id: '', // Die UserID muss bei Lobby-Erstellung gesetzt werden
+        game_mode: 'guess_the_song',
+        platform: 'spotify',
+        is_private: false,
+        max_rounds: 10,
+        is_songs_restricted: false,
+        is_buzzer_mode: false,
+        game_option: ''
     });
 
     const load = async () => {
@@ -45,21 +57,13 @@ export default function Lobby() {
 
     const createLobby = async () => {
         try {
-            if (!Session.userId) {
-                Alert.alert('Fehler', 'Du musst eingeloggt sein');
+            if (!newLobbySettings.owner_id) {
+                Alert.alert('Fehler', 'User ID festlegen!');
                 return;
             }
 
-            // Lobby-Daten mit korrekten Feldnamen für Backend
-            const lobbyData = {
-                name: newLobbySettings.name,
-                ownerid: Session.userId, // Korrigiert: ownerid (nicht owner_id)
-                gamemode: newLobbySettings.gamemode,
-                maxrounds: newLobbySettings.maxrounds,
-                isgenrerestricted: newLobbySettings.isgenrerestricted,
-                isbuzzermode: newLobbySettings.isbuzzermode,
-                isprivate: newLobbySettings.isprivate,
-                gameoptions: newLobbySettings.gameoptions
+            const lobbyData: LobbySettings = {
+                ...newLobbySettings
             };
 
             const response = await fetch(`${CFG.SERVER_URL}/lobbies`, {
@@ -78,13 +82,13 @@ export default function Lobby() {
             }
 
             setShowCreateModal(false);
-            load(); // Lobbys neu laden
+            load();
         } catch (e: any) {
             Alert.alert('Fehler', String(e));
         }
     };
 
-    const gameModeNames = {
+    const gameModeNames: Record<string, string> = {
         'guess_the_song': 'Song erraten',
         'finish_the_lyrics': 'Text ergänzen',
         'music_quiz': 'Musik Quiz'
@@ -100,15 +104,13 @@ export default function Lobby() {
                 renderItem={({ item }) => (
                     <View style={styles.card}>
                         <Text style={styles.name}>{item.name}</Text>
-                        <Text style={styles.gameMode}>{gameModeNames[item.gamemode]}</Text>
+                        <Text style={styles.gameMode}>{gameModeNames[item.game_mode]}</Text>
                         <Text style={styles.details}>
-                            {item.maxrounds} Runden • {item.player_count}/8 Spieler
-                            {item.isbuzzermode && ' • Buzzer-Modus'}
+                            {item.max_rounds} Runden • {item.player_count}/8 Spieler
+                            {item.is_buzzer_mode && ' • Buzzer-Modus'}
                         </Text>
                         {item.code && <Text style={styles.code}>Code: {item.code}</Text>}
-                        <Link href={`/play/game?lobby=${item.id}`} style={styles.link}>
-                            Beitreten
-                        </Link>
+                        <Link href={`/play/game?lobby=${item.id}`} style={styles.link}>Beitreten</Link>
                     </View>
                 )}
                 showsVerticalScrollIndicator={false}
@@ -143,32 +145,32 @@ export default function Lobby() {
                                 key={mode}
                                 style={[
                                     styles.gameModeButton,
-                                    newLobbySettings.gamemode === mode && styles.gameModeButtonActive
+                                    newLobbySettings.game_mode === mode && styles.gameModeButtonActive
                                 ]}
-                                onPress={() => setNewLobbySettings({...newLobbySettings, gamemode: mode as GameMode})}
+                                onPress={() => setNewLobbySettings({...newLobbySettings, game_mode: mode})}
                             >
                                 <Text style={[
                                     styles.gameModeButtonText,
-                                    newLobbySettings.gamemode === mode && styles.gameModeButtonTextActive
+                                    newLobbySettings.game_mode === mode && styles.gameModeButtonTextActive
                                 ]}>{name}</Text>
                             </Pressable>
                         ))}
                     </View>
 
-                    <Text style={styles.label}>Rundenzahl: {newLobbySettings.maxrounds}</Text>
+                    <Text style={styles.label}>Rundenzahl: {newLobbySettings.max_rounds}</Text>
                     <View style={styles.sliderContainer}>
                         {[5, 10, 15, 20].map(rounds => (
                             <Pressable
                                 key={rounds}
                                 style={[
                                     styles.roundButton,
-                                    newLobbySettings.maxrounds === rounds && styles.roundButtonActive
+                                    newLobbySettings.max_rounds === rounds && styles.roundButtonActive
                                 ]}
-                                onPress={() => setNewLobbySettings({...newLobbySettings, maxrounds: rounds})}
+                                onPress={() => setNewLobbySettings({...newLobbySettings, max_rounds: rounds})}
                             >
                                 <Text style={[
                                     styles.roundButtonText,
-                                    newLobbySettings.maxrounds === rounds && styles.roundButtonTextActive
+                                    newLobbySettings.max_rounds === rounds && styles.roundButtonTextActive
                                 ]}>{rounds}</Text>
                             </Pressable>
                         ))}
@@ -177,8 +179,8 @@ export default function Lobby() {
                     <View style={styles.switchContainer}>
                         <Text style={styles.label}>Buzzer-Modus</Text>
                         <Switch
-                            value={newLobbySettings.isbuzzermode}
-                            onValueChange={(value) => setNewLobbySettings({...newLobbySettings, isbuzzermode: value})}
+                            value={newLobbySettings.is_buzzer_mode}
+                            onValueChange={(value) => setNewLobbySettings({...newLobbySettings, is_buzzer_mode: value})}
                             trackColor={{false: '#333', true: '#9D4EDD'}}
                             thumbColor="#fff"
                         />
@@ -187,8 +189,18 @@ export default function Lobby() {
                     <View style={styles.switchContainer}>
                         <Text style={styles.label}>Private Lobby</Text>
                         <Switch
-                            value={newLobbySettings.isprivate}
-                            onValueChange={(value) => setNewLobbySettings({...newLobbySettings, isprivate: value})}
+                            value={newLobbySettings.is_private}
+                            onValueChange={(value) => setNewLobbySettings({...newLobbySettings, is_private: value})}
+                            trackColor={{false: '#333', true: '#9D4EDD'}}
+                            thumbColor="#fff"
+                        />
+                    </View>
+
+                    <View style={styles.switchContainer}>
+                        <Text style={styles.label}>Nur passende Songs</Text>
+                        <Switch
+                            value={newLobbySettings.is_songs_restricted}
+                            onValueChange={(value) => setNewLobbySettings({...newLobbySettings, is_songs_restricted: value})}
                             trackColor={{false: '#333', true: '#9D4EDD'}}
                             thumbColor="#fff"
                         />

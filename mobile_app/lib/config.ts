@@ -4,7 +4,7 @@ export const CFG = {
     // Server & API
     SERVER_URL: (Constants.expoConfig?.extra as any)?.SERVER_URL || 'http://localhost:3000',
 
-    // Supabase (Dummy-Werte für Entwicklung, damit validateConfig true ergibt)
+    // Supabase
     SUPABASE_URL: (Constants.expoConfig?.extra as any)?.SUPABASE_URL || 'http://dev-supabase-url',
     SUPABASE_ANON_KEY: (Constants.expoConfig?.extra as any)?.SUPABASE_ANON_KEY || 'dev-anon-key',
 
@@ -17,10 +17,10 @@ export const CFG = {
         MIN_PLAYERS_PER_LOBBY: 2,
         DEFAULT_ROUNDS: 10,
         MAX_ROUNDS: 25,
-        DEFAULT_TIME_LIMIT: 30, // seconds
+        DEFAULT_TIME_LIMIT: 30,
         POINTS_CORRECT_ANSWER: 100,
         POINTS_QUICK_ANSWER_BONUS: 50,
-        ANSWER_TIME_BONUS_THRESHOLD: 10, // seconds
+        ANSWER_TIME_BONUS_THRESHOLD: 10,
     },
 
     // UI Settings
@@ -38,13 +38,11 @@ export const CFG = {
 
 export const validateConfig = (): boolean => {
     const requiredKeys = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'];
-
     for (const key of requiredKeys) {
         if (!CFG[key as keyof typeof CFG]) {
             console.error(`Missing required config: ${key}`);
             return false;
         }
     }
-
     return true;
 };

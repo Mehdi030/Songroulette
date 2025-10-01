@@ -3,33 +3,36 @@ import { Link } from 'expo-router';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useEffect, useState } from 'react';
 import { CFG, validateConfig } from '../lib/config';
-import { Session } from '../lib/session';
+
+// Dummy-Session für diese Version. Im echten Projekt durch User-Session ersetzen!
+const getUserSession = () => ({
+    isLoggedIn: false,
+    displayName: '',
+    username: '',
+});
 
 export default function Home() {
     const [isConfigValid, setIsConfigValid] = useState(false);
-    const [userSession, setUserSession] = useState(Session.getSession());
+    const [userSession, setUserSession] = useState(getUserSession());
 
     useEffect(() => {
         setIsConfigValid(validateConfig());
-        const session = Session.getSession();
+        const session = getUserSession();
         setUserSession(session);
     }, []);
 
-    // Demo-Login Handler
+    // Demo-Login Handler (nur Dummy)
     const handleDemoLogin = async () => {
-        const result = await Session.loginDemo();
-        if (result.success) {
-            setUserSession(Session.getSession());
-        } else {
-            console.error('Demo-Login fehlgeschlagen:', result.error);
-            // Optional: Alert oder Toast anzeigen
-        }
+        setUserSession({
+            isLoggedIn: true,
+            displayName: 'Demo User',
+            username: 'demo',
+        });
     };
 
-    // Logout Handler
+    // Logout Handler (nur Dummy)
     const handleLogout = async () => {
-        await Session.logout();
-        setUserSession(Session.getSession());
+        setUserSession(getUserSession());
     };
 
     if (!isConfigValid) {
